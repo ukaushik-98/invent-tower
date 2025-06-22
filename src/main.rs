@@ -1,6 +1,6 @@
-use std::{pin::Pin, rc::Rc, time::Duration};
+use std::{pin::Pin, time::Duration};
 
-use tokio::{net::TcpListener, time::sleep};
+use tokio::time::sleep;
 
 struct HttpRequest;
 
@@ -28,40 +28,16 @@ impl Handler for RequestHandler {
 }
 
 #[derive(Clone)]
-struct Timeout<T> {
-    inner: T,
+struct Timeout {
+    inner: RequestHandler,
     duration: Duration,
 }
 
-impl<T> Timeout<T> {
-    fn new() -> Self {
-        todo!()
-    }
-}
-
-impl<T> Handler for Timeout<T>
-where
-    T: Handler + Send + Clone,
-{
-    type Future<'a>
-        = Pin<Box<dyn Future<Output = Result<HttpResponse, Error>> + Send + 'a>>
-    where
-        T: 'a;
+impl Handler for Timeout {
+    type Future<'a> = Pin<Box<dyn Future<Output = Result<HttpResponse, Error>> + Send + 'a>>;
 
     fn call(&mut self, request: HttpRequest) -> Self::Future<'_> {
-        // let mut this = self.clone();
-
-        // Box::pin(async move {
-        //     let result = tokio::time::timeout(this.duration, this.inner.call(request)).await;
-
-        //     match result {
-        //         Ok(Ok(response)) => Ok(response),
-        //         Ok(Err(error)) => Err(error),
-        //         Err(_timeout) => Err(Error),
-        //     }
-        // })
-
-        todo!()
+        Box::pin(async { self.inner.call(request).await })
     }
 }
 
@@ -75,7 +51,6 @@ async fn main() {
 
     let _ = tokio::spawn(async move {
         let x = t.call(HttpRequest).await;
-        // let rc = send_rc().await;
         sleep(Duration::from_millis(10)).await;
     })
     .await;
