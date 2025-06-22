@@ -65,54 +65,6 @@ where
     }
 }
 
-fn static_check<T>(t: T)
-where
-    T: 'static,
-{
-}
-
-async fn ts_handler<'a, T>()
-where
-    T: Send + Clone + Handler,
-{
-    let _ = tokio::spawn(async move {
-        let mut t = Timeout::<T>::new();
-        sleep(Duration::from_millis(10)).await;
-        let x = t.call(HttpRequest);
-    })
-    .await;
-}
-
-async fn send_rc() -> Rc<u8> {
-    Rc::new(5)
-}
-
-async fn create_t<'a, T>(x: T) -> T
-where
-    T: 'a,
-{
-    x
-}
-
-async fn ret_t<'a, T>(x: T) -> T
-where
-    T: 'a,
-{
-    x
-}
-
-async fn foo<'a, T>()
-where
-    T: Send + 'a,
-{
-    tokio::spawn(async move {
-        let x = create_t(String::from("hello"));
-        let x = &x;
-        let _ = sleep(Duration::from_millis(10)).await;
-        let _ = ret_t(x).await;
-    });
-}
-
 #[tokio::main]
 async fn main() {
     println!("Hello, world!");
